@@ -1,0 +1,32 @@
+body {
+    font: 120pt 'Arial, Sans-serif';
+}
+
+#gameBoard {
+    display:block;
+    width:600px;
+    height:600px;
+}
+
+#gameBoard div {
+    background-color:#1e1e1e;
+    color: #e5e5e5;
+    width:198px;
+    height: 198px;
+    float:left;
+    text-align: center;
+    border: #e5e5e5 solid 1px;
+}
+
+#gameBoard div span {
+    line-height: 200px;
+    text-align: center;
+}
+
+.notSelectable {
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+}

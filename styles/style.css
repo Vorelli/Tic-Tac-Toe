@@ -21,6 +21,11 @@ body {
 #gameBoard div span {
     line-height: 200px;
     text-align: center;
+    pointer-events: none;
+}
+
+.win {
+    background-color: goldenrod !important;
 }
 
 .notSelectable {

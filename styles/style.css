@@ -6,6 +6,7 @@ body {
     display:block;
     width:600px;
     height:600px;
+    float:left;
 }
 
 #gameBoard div {
@@ -24,8 +25,26 @@ body {
     pointer-events: none;
 }
 
+#playerDisplay .notSelectable, #buttons .notSelectable {
+    width:300px;
+    height:30px;
+    font: 20pt 'Arial, Sans-serif';
+    float: left;
+    text-align:center;
+}
+
+#buttons, #playerDisplay {
+    float:left;
+    width:600px;
+    height:30px;
+}
+
 .win {
     background-color: goldenrod !important;
+}
+
+.turn {
+    background-color: darkorange;
 }
 
 .notSelectable {

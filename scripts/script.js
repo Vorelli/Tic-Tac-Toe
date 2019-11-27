@@ -4,27 +4,19 @@ const ticTacToeManager = (function() {
     let playing = false;
     let playersTurn;
     const possibleMatches = [
-        [0,1,2],
-        [3,4,5],
-        [6,7,8],
-        [0,3,6],
-        [1,4,7],
-        [2,5,8],
-        [0,4,8],
-        [2,4,6]
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
     ];
 
     function setChar(index, char) {
         gameBoard.setChar(index, char);
-        displayManager.renderBoard();
     }
     
     function getFromUser(message, conditions) {
         let temp;
-        
-        do {
-            temp = prompt(message);
-        } while(eval(conditions));
+        do temp = prompt(message);
+        while (eval(conditions));
         return temp;
     }
 
@@ -54,9 +46,6 @@ const ticTacToeManager = (function() {
     function newGame() {
         clearBoard();
         playerChoice();
-        document.querySelectorAll('#gameBoard div').forEach(element => {
-            element.addEventListener('click', boxClicked)
-        });
         displayManager.renderScores();
     };
 
@@ -64,12 +53,13 @@ const ticTacToeManager = (function() {
         matches.forEach(element => {
             document.querySelector(`#a${element}`).classList.add('win');
         })
+        playing = false;
         players.forEach(player => {
             if(player.getSymbol() == document.querySelector(`#a${matches[0]}`).firstElementChild.textContent)
                 player.win();
+                displayManager.renderScores();
+                displayManager.setWinner(player)
         })
-        playing = false;
-        displayManager.renderScores();
     }
 
     function _match(positions) {
@@ -89,17 +79,6 @@ const ticTacToeManager = (function() {
             }
         }
         return false;
-    }
-
-    function boxClicked(event) {
-        if(playing) {
-            if(gameBoard.getBoard()[event.target.id[1]] == '' || gameBoard.getBoard()[event.target.id[1]] == ' ') {
-                setChar(event.target.id[1], playersTurn.getSymbol());
-            }else return;
-            if(!checkForMatches()) switchPlayerTurn();
-            displayManager.renderScores();
-        }
-        if(!(gameBoard.getBoard().indexOf('') == -1 || gameBoard.getBoard().indexOf(' ') == -1)) playing = false;
     }
 
     function switchPlayerTurn() {
@@ -133,8 +112,9 @@ const ticTacToeManager = (function() {
     }
     const getPlayers = () => players;
     const getPlayersTurn = () => playersTurn;
+    const getPlaying = () => playing;
 
-    return {start, ping, getPlayers, getPlayersTurn};
+    return {start, ping, getPlayers, getPlayersTurn, getPlaying};
 
 })()
 
@@ -148,10 +128,10 @@ const gameBoard = (function() {
 })();
 
 function player(name, symbol, startingWins=0) {
-    const getSymbol = () => symbol;    
+    const getSymbol = () => symbol;
     const getName = () => name;
     const getWins = () => startingWins;
-    const win = () => startingWins++;    
+    const win = () => startingWins++;
     const resetWins = () => startingWins = 0;
     return {getSymbol, getName, getWins, win, resetWins}
 }
@@ -162,11 +142,6 @@ const displayManager = function() {
         '#playerDisplay',
         '#gameBoard'
     ];
-    const updateButtons = () => {
-        document.querySelectorAll('#buttons div').forEach(button => {
-            button.addEventListener('click', button.textContent == 'New Game' ? ticTacToeManager.ping.bind(button, 'newGame') : ticTacToeManager.ping.bind(button, 'restart'));
-        })
-    }
 
     const fixDisplay = function() {
         const marginLength = (window.innerWidth - 600)/2 + 'px';
@@ -187,13 +162,48 @@ const displayManager = function() {
             let temp = document.createElement('div');
             temp.classList.add('notSelectable');
             temp.textContent = `(${ticTacToeManager.getPlayers()[i].getSymbol()}) ${ticTacToeManager.getPlayers()[i].getName()}: ${ticTacToeManager.getPlayers()[i].getWins()}`;
-            if(ticTacToeManager.getPlayers()[i] == ticTacToeManager.getPlayersTurn())
+            console.log(ticTacToeManager.playing);
+            if(ticTacToeManager.getPlayers()[i] == ticTacToeManager.getPlayersTurn() && ticTacToeManager.getPlaying())
                 temp.classList.add('turn');
             document.querySelector('#playerDisplay').appendChild(temp);
         }
     }
-    return {updateButtons, fixDisplay, renderBoard, renderScores};
+
+    const setWinner = (player) => {
+        document.querySelectorAll('#playerDisplay div').forEach(element => {
+            if(element.textContent[1] == player.getSymbol())
+                console.log(element.classList)
+                element.classList.remove('turn');
+                element.classList.add('win');
+        })
+    }
+    return {fixDisplay, renderBoard, renderScores, setWinner};
 }();
 
-ticTacToeManager.start();
+const ticTacToeController = function() {
+    const updateButtons = () => {
+        document.querySelectorAll('#buttons div').forEach(button => {
+            button.addEventListener('click', button.textContent == 'New Game' ? ticTacToeManager.ping.bind(button, 'newGame') : ticTacToeManager.ping.bind(button, 'restart'));
+        })
+    }
+
+    function boxClicked(event) {
+        if(playing) {
+            if(gameBoard.getBoard()[event.target.id[1]] == '' || gameBoard.getBoard()[event.target.id[1]] == ' ') {
+                setChar(event.target.id[1], playersTurn.getSymbol());
+            }else return;
+            if(!checkForMatches()) switchPlayerTurn();
+            displayManager.renderScores();
+        }
+        if(!(gameBoard.getBoard().indexOf('') == -1 || gameBoard.getBoard().indexOf(' ') == -1)) playing = false;
+        displayManager.renderBoard();
+    }
+
+    document.querySelectorAll('#gameBoard div').forEach(element => {
+        element.addEventListener('click', boxClicked)
+    });
+    updateButtons();
+}()
+
 window.onresize = displayManager.fixDisplay;
+ticTacToeManager.start();

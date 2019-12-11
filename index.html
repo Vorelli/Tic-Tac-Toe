@@ -4,24 +4,32 @@
         <link href='styles/style.css' type='text/css' rel='stylesheet'>
     </head>
     <body>
+        <div id='heading' class='notSelectable'>
+            Tic-Tac-Toe
+        </div>
         <div id='playerDisplay'>
             <div class='notSelectable' id='player1'>Player 1: 100</div>
             <div class='notSelectable' id='player2'>Player 2: 0</div>
         </div>
         <div id='gameBoard'>
-            <div class='notSelectable' id='a0'><span></span></div>
-            <div class='notSelectable' id='a1'><span></span></div>
-            <div class='notSelectable' id='a2'><span></span></div>
-            <div class='notSelectable' id='a3'><span></span></div>
-            <div class='notSelectable' id='a4'><span></span></div>
-            <div class='notSelectable' id='a5'><span></span></div>
-            <div class='notSelectable' id='a6'><span></span></div>
-            <div class='notSelectable' id='a7'><span></span></div>
-            <div class='notSelectable' id='a8'><span></span></div>
+            <div class='border'><div class='notSelectable' id='a0'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a1'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a2'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a3'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a4'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a5'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a6'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a7'><span></span></div></div>
+            <div class='border'><div class='notSelectable' id='a8'><span></span></div></div>
         </div>
         <div id='buttons'>
             <div class='notSelectable'>New Game</div>
             <div class='notSelectable'>Restart</div>
+        </div>
+        <div id='messageBox'>
+            <span class='notSelectable'>
+                You win!
+            </span>
         </div>
         <script src='scripts/script.js'></script>
     </body>

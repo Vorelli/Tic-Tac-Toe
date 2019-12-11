@@ -4,15 +4,13 @@ const ticTacToeManager = (function() {
     let playersTurn;
     const sideLength = 3;    
     const board = [];
-    const possibleMatches = [
-        [0,1,2],[3,4,5],[6,7,8],
-        [0,3,6],[1,4,7],[2,5,8],
-        [0,4,8],[2,4,6]
-    ];
+    const possibleMatches = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
     const _switchPlayerTurn = () => playersTurn = players[0] == playersTurn ? players[1] : players[0];
     const _moveisValid = (index) => (board[index] == '' || board[index] == ' ');
+    const _isCatScratch = () => board.indexOf(' ') == -1;
 
     function _clearBoard() {
+        displayManager.clearBoard();
         for(let i = 0; i < sideLength*sideLength; i++)
             board[i] = ' ';
         _switchPlayerTurn();
@@ -37,13 +35,22 @@ const ticTacToeManager = (function() {
         return false;
     }
 
+    function _tie() {
+        displayManager.setTie();
+        playing = false;
+        displayManager.renderScores();
+    }
+
     function _makeMove(index) {
         if(_moveisValid(index) && playing){
             board[index] = playersTurn.getSymbol();
             if (_checkForMatches()) {
                 playing = false;
                 _win(possibleMatches[i]);
-            } else _switchPlayerTurn();
+            } else {
+                if(_isCatScratch()) _tie();
+                else _switchPlayerTurn();
+            }
         }
     }
 
@@ -55,7 +62,7 @@ const ticTacToeManager = (function() {
     }
 
     function ping(message, event, arg) {
-        console.log(message);
+        console.log(message, event);
         switch(message) {
             case 'newGame': _clearBoard();break;
             case 'boxClicked': _makeMove(event.id[1]);break;
@@ -71,25 +78,43 @@ function player(name, symbol, startingWins=0) {
 }
 
 const displayManager = function() {
-    const needsToBeCentered = ['#buttons', '#playerDisplay', '#gameBoard'];
+    const needsToBeCentered = ['#buttons', '#playerDisplay', '#gameBoard', '#messageBox', '#heading'];
     let winner;
+    let tie = false;
+    const addClassToSquares = (squares, tag) => {for(i in squares) document.querySelector(`#a${squares[i]}`).classList.add(tag)};
+    const setTie = () => {addClassToSquares([0,1,2,3,4,5,6,7,8], 'tie');tie=true;};
+    const setWinner = (matches, player) => {addClassToSquares(matches,'win');winner = !player ? undefined : player;};
+    const renderBoard = () => {
+        for(let i=0;i<ticTacToeManager.getBoard().length;i++) {
+            document.querySelector(`#a${i}`).firstElementChild.textContent = ticTacToeManager.getBoard()[i]
+            if(ticTacToeManager.getBoard()[i] != ' ')
+                document.querySelector(`#a${i}`).classList.add('becomingVisisble');
+            else
+                document.querySelector(`#a${i}`).classList.remove('becomingVisisble');
+        }
+    };
     
     const clearBoard = function() {
         for(let i = 0; i < document.querySelectorAll('#gameBoard div').length; i++) {
             let element = document.querySelectorAll('#gameBoard div')[i];
             element.classList.remove('win');
+            element.classList.remove('tie');
         }
+        tie=false;
+        winner=undefined;
+        document.querySelector('#messageBox span').textContent = "";
+        document.querySelector('#messageBox span').classList.remove('becomingVisible');
     }
 
     const fixDisplay = function() {
-        const marginLength = (window.innerWidth - 600)/2 + 'px';
+        const marginLengthForWidth = (window.innerWidth - 600)/2 + 'px';
+        const marginLengthForHeight = (window.innerHeight-790)/2/2 + 'px';
+        document.querySelector('#heading').style.marginTop = marginLengthForHeight;
         needsToBeCentered.forEach(element => {
-            document.querySelector(element).style.marginLeft = marginLength;
-            document.querySelector(element).style.marginRight = marginLength
+            document.querySelector(element).style.marginLeft = marginLengthForWidth;
+            document.querySelector(element).style.marginRight = marginLengthForWidth
         })
     }
-    
-    const renderBoard = () => {for(let i=0;i<ticTacToeManager.getBoard().length;i++) document.querySelector(`#a${i}`).firstElementChild.textContent = ticTacToeManager.getBoard()[i]};
 
     const renderScores = () => {
         document.querySelector('#playerDisplay').innerHTML = '';
@@ -98,35 +123,23 @@ const displayManager = function() {
             temp.classList.add('notSelectable');
             temp.textContent = `(${ticTacToeManager.getPlayers()[i].getSymbol()}) ${ticTacToeManager.getPlayers()[i].getName()}: ${ticTacToeManager.getPlayers()[i].getWins()}`;
             temp.player = ticTacToeManager.getPlayers()[i];
-            if(ticTacToeManager.getPlayers()[i] == ticTacToeManager.getPlayersTurn() && ticTacToeManager.getPlaying())
-                temp.classList.add('turn');
-            console.log(temp.player);
-            console.log(temp.player == winner);
-            if(!ticTacToeManager.getPlaying() && winner === temp.player)
-                temp.classList.add('win');
+            ticTacToeManager.getPlayers()[i] == ticTacToeManager.getPlayersTurn() && ticTacToeManager.getPlaying() ? temp.classList.add('turn') : temp;
+            !ticTacToeManager.getPlaying() && winner === temp.player ? temp.classList.add('win') : temp;
+            if(temp.player == winner){
+                document.querySelector('#messageBox span').textContent = temp.player.getName() + " wins!!!"
+                document.querySelector('#messageBox span').classList.add('becomingVisible');
+            }
+            tie ? temp.classList.add('tie') : temp.classList.remove('tie');
             document.querySelector('#playerDisplay').appendChild(temp);
         }
     }
-
-    const setWinner = (matches, player) => {
-        winner = !player ? undefined : player;
-        for(i in matches) document.querySelector(`#a${matches[i]}`).classList.add('win');
-    }
-    return {fixDisplay, renderBoard, renderScores, setWinner, clearBoard};
+    return {fixDisplay, renderBoard, renderScores, setTie, setWinner, clearBoard};
 }();
 
 const ticTacToeController = function() {
     const players = [];
-    const updateButtons = () => {
-        document.querySelectorAll('#buttons div').forEach(button => {
-            button.addEventListener('click', button.textContent == 'New Game' ? 
-            () => {
-                ticTacToeManager.ping('newGame');
-                displayManager.clearBoard();
-            }
-            : ticTacToeManager.ping.bind('start'));
-        })
-    }
+    const _noOneHas = (char) => (char!=' ') && (players.length==0 || players[0].getSymbol()!=char)
+    const updateButtons = () => document.querySelectorAll('#buttons div').forEach(button => {button.addEventListener('click', button.textContent == 'New Game' ? () => ticTacToeManager.ping('newGame') : ticTacToeManager.ping.bind(this, 'start'));})
     
     function _getFromUser(message, conditions) {
         let temp;
@@ -134,12 +147,6 @@ const ticTacToeController = function() {
         while (eval(conditions));
         return temp;
     }
-
-    const _noOneHas = (char) => {
-        if(char==' ') return false;
-        for(i in players) if(players[i].getSymbol()==char) return false;
-        return true;
-    };
 
     function playerChoice() {
         players.splice(0,2);

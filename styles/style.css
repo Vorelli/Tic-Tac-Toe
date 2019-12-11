@@ -1,5 +1,8 @@
 body {
     font: 120pt 'Arial, Sans-serif';
+    background-color: #e5e5e5;
+    color: #1e1e1e;
+    margin:0px;
 }
 
 #gameBoard {
@@ -7,16 +10,54 @@ body {
     width:600px;
     height:600px;
     float:left;
+    background-color: #1e1e1e;
 }
 
-#gameBoard div {
+#gameBoard div.border {
+    border: #e5e5e5 solid 1px;
+    float: left;
+    width:198px;
+    height: 198px;
+}
+
+#gameBoard div div {
     background-color:#1e1e1e;
     color: #e5e5e5;
     width:198px;
     height: 198px;
     float:left;
     text-align: center;
-    border: #e5e5e5 solid 1px;
+    opacity:0.01;
+}
+
+#heading {
+    width: 600px;
+    color: #e5e5e5;
+    font-size: 56pt;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 100px;
+    height: 100px;
+    background-color: #1e1e1e;
+}
+
+#buttons div:active {
+    background-color: #1e1e1e;
+    color: goldenrod;
+}
+
+#buttons, #messageBox {
+    background-color:goldenrod;
+}
+
+#messageBox span{
+    opacity:0.0;
+    background-color:goldenrod;
+}
+
+#gameBoard div.becomingVisisble, #messageBox span.becomingVisible {
+    transition: 1.5s;
+    opacity: 1.0;
 }
 
 #gameBoard div span {
@@ -25,7 +66,14 @@ body {
     pointer-events: none;
 }
 
-#playerDisplay .notSelectable, #buttons .notSelectable {
+#playerDisplay div {
+    background-color: #1e1e1e;
+    color: #e5e5e5;
+    border-bottom: #e5e5e5 solid 1px;
+    border-top: #e5e5e5 solid 1px;
+}
+
+#playerDisplay .notSelectable, #buttons .notSelectable, #messageBox .notSelectable {
     width:300px;
     height:30px;
     font: 20pt 'Arial, Sans-serif';
@@ -33,7 +81,11 @@ body {
     text-align:center;
 }
 
-#buttons, #playerDisplay {
+#messageBox .notSelectable {
+    width:600px !important;
+}
+
+#buttons, #playerDisplay, #messageBox {
     float:left;
     width:600px;
     height:30px;
@@ -44,7 +96,12 @@ body {
 }
 
 .turn {
-    background-color: darkorange;
+    background-color: #fff !important;
+    color: #1e1e1e !important;
+}
+
+.tie {
+    background-color: darkred !important;
 }
 
 .notSelectable {

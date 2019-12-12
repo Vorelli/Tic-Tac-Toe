@@ -126,10 +126,11 @@ const displayManager = function() {
             ticTacToeManager.getPlayers()[i] == ticTacToeManager.getPlayersTurn() && ticTacToeManager.getPlaying() ? temp.classList.add('turn') : temp;
             !ticTacToeManager.getPlaying() && winner === temp.player ? temp.classList.add('win') : temp;
             if(temp.player == winner){
-                document.querySelector('#messageBox span').textContent = temp.player.getName() + " wins!!!"
+                document.querySelector('#messageBox span').textContent = temp.player.getName() + " wins!!!";
                 document.querySelector('#messageBox span').classList.add('becomingVisible');
             }
-            tie ? temp.classList.add('tie') : temp.classList.remove('tie');
+            if(tie) { temp.classList.add('tie');document.querySelector('#messageBox span').textContent = "Catscratch! Try again!";document.querySelector('#messageBox span').classList.add('becomingVisible'); }
+            else temp.classList.remove('tie');
             document.querySelector('#playerDisplay').appendChild(temp);
         }
     }

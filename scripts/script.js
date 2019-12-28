@@ -1,3 +1,5 @@
+//  Handles game logic and the back-end so to speak.
+//  Can reach out to other methods to generate board.
 const ticTacToeManager = (function() {
     const players = [];
     let playing = false;
@@ -8,6 +10,7 @@ const ticTacToeManager = (function() {
     const _switchPlayerTurn = () => playersTurn = players[0] == playersTurn ? players[1] : players[0];
     const _moveisValid = (index) => (board[index] == '' || board[index] == ' ');
     const _isCatScratch = () => board.indexOf(' ') == -1;
+    const _checkForMatches = () => {for(i in possibleMatches) if(_match(possibleMatches[i])) return i; return -1;}
 
     function _clearBoard() {
         displayManager.clearBoard();
@@ -27,13 +30,8 @@ const ticTacToeManager = (function() {
 
     function _match(positions) {
         const chars = [board[positions[0]],board[positions[1]],board[positions[2]]];
-        return !(chars[0] == ' ' || chars[1] == ' ' || chars[2] == ' ' || chars[0] != chars[1] || chars[0] != chars[2]);
-    }
-
-    function _checkForMatches() {
-        for(i in possibleMatches) if(_match(possibleMatches[i])) return true;
-        return false;
-    }
+        return !(chars[0] == ' ' || chars[1] == ' ' || chars[0] != chars[1] || chars[0] != chars[2]);
+    } 
 
     function _tie() {
         displayManager.setTie();
@@ -44,13 +42,9 @@ const ticTacToeManager = (function() {
     function _makeMove(index) {
         if(_moveisValid(index) && playing){
             board[index] = playersTurn.getSymbol();
-            if (_checkForMatches()) {
-                playing = false;
-                _win(possibleMatches[i]);
-            } else {
-                if(_isCatScratch()) _tie();
-                else _switchPlayerTurn();
-            }
+            let i = _checkForMatches();
+            if (i != -1) _win(possibleMatches[i]);
+            else if(_isCatScratch()) _tie(); else _switchPlayerTurn();
         }
     }
 
@@ -60,30 +54,31 @@ const ticTacToeManager = (function() {
         _clearBoard();
         displayManager.fixDisplay();
     }
+    //  Public methods
+    const newGame = () => _clearBoard();
+    const boxClicked = (index) => _makeMove(index);
+    const start = () => _start(ticTacToeController.playerChoice());
+    const getBoard = () => Array.from(board);
+    const getPlayers = () => players;
+    const getPlayersTurn = () => playersTurn;
+    const isPlaying = () => playing
 
-    function ping(message, event, arg) {
-        console.log(message, event);
-        switch(message) {
-            case 'newGame': _clearBoard();break;
-            case 'boxClicked': _makeMove(event.id[1]);break;
-            case 'start': _start(ticTacToeController.playerChoice());break;
-        }
-    }
-
-    return {_clearBoard, ping, getBoard: (() => Array.from(board)), getPlayers : (() => players), getPlayersTurn : (() => playersTurn), getPlaying: (() => playing), numPlayers: () => 2};
+    return {newGame, boxClicked, start, getBoard, getPlayers, getPlayersTurn, isPlaying, numPlayers: 2};
 })()
 
 function player(name, symbol, startingWins=0) {
     return {getSymbol: () => symbol, getName: () => name, getWins: () => startingWins, win: () => startingWins++, resetWins: () => startingWins = 0}
 }
 
+//Handles display of the game board and everything the player sees.
 const displayManager = function() {
     const needsToBeCentered = ['#buttons', '#playerDisplay', '#gameBoard', '#messageBox', '#heading'];
     let winner;
     let tie = false;
-    const addClassToSquares = (squares, tag) => {for(i in squares) document.querySelector(`#a${squares[i]}`).classList.add(tag)};
-    const setTie = () => {addClassToSquares([0,1,2,3,4,5,6,7,8], 'tie');tie=true;};
-    const setWinner = (matches, player) => {addClassToSquares(matches,'win');winner = !player ? undefined : player;};
+    const _addClassToSquares = (squares, tag) => {for(i in squares) document.querySelector(`#a${squares[i]}`).classList.add(tag)};
+    const setTie = () => {_addClassToSquares([0,1,2,3,4,5,6,7,8], 'tie');tie=true;};
+    const setWinner = (matches, player) => {_addClassToSquares(matches,'win');winner = !player ? undefined : player;};
+
     const renderBoard = () => {
         for(let i=0;i<ticTacToeManager.getBoard().length;i++) {
             document.querySelector(`#a${i}`).firstElementChild.textContent = ticTacToeManager.getBoard()[i]
@@ -123,8 +118,8 @@ const displayManager = function() {
             temp.classList.add('notSelectable');
             temp.textContent = `(${ticTacToeManager.getPlayers()[i].getSymbol()}) ${ticTacToeManager.getPlayers()[i].getName()}: ${ticTacToeManager.getPlayers()[i].getWins()}`;
             temp.player = ticTacToeManager.getPlayers()[i];
-            ticTacToeManager.getPlayers()[i] == ticTacToeManager.getPlayersTurn() && ticTacToeManager.getPlaying() ? temp.classList.add('turn') : temp;
-            !ticTacToeManager.getPlaying() && winner === temp.player ? temp.classList.add('win') : temp;
+            ticTacToeManager.getPlayers()[i] == ticTacToeManager.getPlayersTurn() && ticTacToeManager.isPlaying() ? temp.classList.add('turn') : temp;
+            !ticTacToeManager.isPlaying() && winner === temp.player ? temp.classList.add('win') : temp;
             if(temp.player == winner){
                 document.querySelector('#messageBox span').textContent = temp.player.getName() + " wins!!!";
                 document.querySelector('#messageBox span').classList.add('becomingVisible');
@@ -137,10 +132,11 @@ const displayManager = function() {
     return {fixDisplay, renderBoard, renderScores, setTie, setWinner, clearBoard};
 }();
 
+//Handles everything input from the player.
 const ticTacToeController = function() {
     const players = [];
     const _noOneHas = (char) => (char!=' ') && (players.length==0 || players[0].getSymbol()!=char)
-    const updateButtons = () => document.querySelectorAll('#buttons div').forEach(button => {button.addEventListener('click', button.textContent == 'New Game' ? () => ticTacToeManager.ping('newGame') : ticTacToeManager.ping.bind(this, 'start'));})
+    const updateButtons = () => document.querySelectorAll('#buttons div').forEach(button => {button.addEventListener('click', button.textContent == 'New Game' ? () => ticTacToeManager.newGame() : () => ticTacToeManager.start());})
     
     function _getFromUser(message, conditions) {
         let temp;
@@ -151,7 +147,7 @@ const ticTacToeController = function() {
 
     function playerChoice() {
         players.splice(0,2);
-        for(let i = 0; i < ticTacToeManager.numPlayers(); i++){
+        for(let i = 0; i < ticTacToeManager.numPlayers; i++){
             let playerName = _getFromUser(`Enter player ${i+1}'s name:`, `!temp || temp==' ' || temp.length==0`)
             let j = 0;
             let playerChar = ' ';
@@ -166,7 +162,7 @@ const ticTacToeController = function() {
 
     document.querySelectorAll('#gameBoard div').forEach(element => {
         element.addEventListener('click', () => {
-            ticTacToeManager.ping('boxClicked', element,);
+            ticTacToeManager.boxClicked(element.id[1]);
             displayManager.renderBoard();
             displayManager.renderScores();
         })
@@ -176,4 +172,4 @@ const ticTacToeController = function() {
 }()
 
 window.onresize = displayManager.fixDisplay;
-ticTacToeManager.ping('start');
+setTimeout(ticTacToeManager.start, 10);
